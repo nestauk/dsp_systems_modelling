@@ -1,0 +1,119 @@
+[project]
+name = "dsp-systems-modelling"
+version = "0.1.0"
+description = "Building policy evidence base"
+authors = [
+    {name = "mcpseud",email = "karlis.kanders@nesta.org.uk"},
+    {name = "beingkk",email = "luke.mcnally@nesta.org.uk"}
+]
+readme = "README.md"
+requires-python = ">=3.12,<4.0"
+dependencies = [
+    "pandas (>=2.2.3,<3.0.0)",
+    "pyalex (>=0.15.1,<0.16.0)",
+    "openai (>=1.60.2,<2.0.0)",
+    "numpy (>=2.2.2,<3.0.0)",
+    "pypdf2 (>=3.0.1,<4.0.0)",
+    "importlib-metadata (>=8.6.1,<9.0.0)"
+]
+
+[tool.poetry]
+packages = [
+    { include = "dsp_systems_modelling"},
+    { include = "ai_utils.py", from = "dsp_systems_modelling" },
+    { include = "extract_data.py", from = "dsp_systems_modelling" },
+    { include = "ontology_mapping.py", from = "dsp_systems_modelling" },
+    { include = "openalex_utils.py", from = "dsp_systems_modelling" },
+    { include = "search_literature.py", from = "dsp_systems_modelling" },
+]
+
+[tool.poetry.group.lint.dependencies]
+pre-commit = "^4.1.0"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+exclude = [
+    "__pycache__",
+    "env",
+    ".env",
+    "venv",
+    ".venv",
+]
+
+line-length = 120
+
+[tool.ruff.format]
+docstring-code-format = true
+
+[tool.ruff.lint]
+select = [
+    "B",  # flake8-bugbear
+    "C4", # flake8-comprehensions
+    "D",  # pydocstyle
+    "E",  # Error
+    "F",  # pyflakes
+    "I",  # isort
+    "N",  # pep8-naming
+    "PGH",  # pygrep-hooks
+    "PTH", # flake8-use-pathlib
+    "Q",  # flake8-quotes
+    "S",  # bandit
+    "SIM",  # flake8-simplify
+    "TRY",  # tryceratops
+    "UP",  # pyupgrade
+    "W",  # Warning
+    "YTT", # flake8-2020
+]
+
+ignore = [
+    "B905",  # zip strict=True; remove once python <3.10 support is dropped.
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D106",
+    "D107",
+    "D200",
+    "D401",
+    "E402",
+    "E501",
+    "F401",
+    "TRY003",  # Avoid specifying messages outside exception class; overly strict, especially for ValueError
+]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = [
+    "chr",
+    "typer.Argument",
+    "typer.Option",
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "numpy"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*.py" = [
+    "D100",
+    "D101",
+    "D102",
+    "D103",
+    "D104",
+    "D105",
+    "D106",
+    "D107",
+    "S101",  # use of "assert"
+    "S102",  # use of "exec"
+    "S106",  # possible hardcoded password.
+    "PGH001",  # use of "eval"
+]
+
+[tool.ruff.lint.pep8-naming]
+staticmethod-decorators = [
+    "pydantic.validator",
+    "pydantic.root_validator",
+]

@@ -1,13 +1,14 @@
 import pandas as pd
 import pyalex
 
+
 def reconstruct_abstract(inverted_index):
     """
     Reconstructs a plain-text abstract from the OpenAlex inverted index.
     """
     if not inverted_index:
         return None
-    
+
     max_index = max(pos for positions in inverted_index.values() for pos in positions)
     abstract = [""] * (max_index + 1)
 
@@ -16,6 +17,7 @@ def reconstruct_abstract(inverted_index):
             abstract[pos] = word
 
     return " ".join(abstract)
+
 
 def extract_oa_metadata(best_oa_location):
     """
@@ -33,11 +35,9 @@ def extract_oa_metadata(best_oa_location):
         "is_oa": best_oa_location.get("is_oa", False),
     }
 
+
 def fetch_openalex_results(
-    search_term: str,
-    user_email: str,
-    min_cites: str = ">4",
-    n_works: int = 1000
+    search_term: str, user_email: str, min_cites: str = ">4", n_works: int = 1000
 ) -> pd.DataFrame:
     """
     Fetch works from OpenAlex based on a search term and citation filter.
@@ -48,7 +48,8 @@ def fetch_openalex_results(
         min_cites (str): Minimum citation count filter (e.g., '>10'). Defaults to '>4'.
         n_works (int): Maximum number of works to fetch. Defaults to 1000.
 
-    Returns:
+    Returns
+    -------
         pd.DataFrame: A DataFrame containing key work metadata (title, doi, year, abstract, etc.).
     """
     pyalex.config["email"] = user_email
