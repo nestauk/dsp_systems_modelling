@@ -3,8 +3,8 @@ name = "dsp-systems-modelling"
 version = "0.1.0"
 description = "Building policy evidence base"
 authors = [
-    {name = "mcpseud",email = "karlis.kanders@nesta.org.uk"},
-    {name = "beingkk",email = "luke.mcnally@nesta.org.uk"}
+    {name = "mcpseud",email = "luke.mcnally@nesta.org.uk"},
+    {name = "beingkk",email = "karlis.kanders@nesta.org.uk"}
 ]
 readme = "README.md"
 requires-python = ">=3.12,<4.0"
