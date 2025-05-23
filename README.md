@@ -1,5 +1,8 @@
 # Complex systems modelling
-Building policy evidence base and predicting policy impact
+
+Using AI and data science to build policy evidence base and simulate policy impact
+
+More work coming soon!
 
 ## Installation
 
