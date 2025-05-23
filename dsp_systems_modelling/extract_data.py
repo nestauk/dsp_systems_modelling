@@ -1,11 +1,9 @@
 import csv
 from pathlib import Path
+
+from ai_utils import extract_meta_info, extract_result_details, extract_user_items
 from PyPDF2 import PdfReader
-from ai_utils import (
-    extract_meta_info,
-    extract_result_details,
-    extract_user_items
-)
+
 
 # Replace `get_pdf_text` with a local PDF text extraction function
 def extract_text_from_pdf(pdf_path: Path) -> str:
@@ -15,7 +13,8 @@ def extract_text_from_pdf(pdf_path: Path) -> str:
     Args:
         pdf_path (Path): Path to the PDF file.
 
-    Returns:
+    Returns
+    -------
         str: The extracted text.
     """
     try:
@@ -23,18 +22,18 @@ def extract_text_from_pdf(pdf_path: Path) -> str:
         text = ""
         for page in reader.pages:
             text += page.extract_text()
-        return text
+        return text  # noqa: TRY300
     except Exception as e:
         print(f"[ERROR] Failed to extract text from {pdf_path}: {e}")
         return ""
 
+
 def run_three_pass_extraction(
-    pdf_folder: str,
-    output_csv: str = "extraction_results.csv",
-    user_items: list[str] = None,
-    model: str = "gpt-4o"
+    pdf_folder: str, output_csv: str = "extraction_results.csv", user_items: list[str] = None, model: str = "gpt-4o"
 ):
     """
+    Run three pass extraction.
+
     For each PDF in pdf_folder:
       1) Extract paper text
       2) Pass 1: Meta info => basic fields + # main results + semicolon list
@@ -66,24 +65,17 @@ def run_three_pass_extraction(
             continue
 
         # --- Pass 1: Meta info ---
-        meta_data = extract_meta_info(
-            paper_text=paper_text,
-            model=model
-        )
+        meta_data = extract_meta_info(paper_text=paper_text, model=model)
 
         # --- Pass 3: User items (once per study) ---
         user_data = {}
         if user_items:
-            user_data = extract_user_items(
-                paper_text=paper_text,
-                user_items=user_items,
-                model=model
-            )
+            user_data = extract_user_items(paper_text=paper_text, user_items=user_items, model=model)
 
         # figure out how many main results
         try:
             num_results = int(meta_data["num_main_results"])
-        except:
+        except:  # noqa: E722
             num_results = 0
 
         main_results_str = meta_data["main_results_list"]  # e.g. "Result A; Result B"
@@ -115,25 +107,21 @@ def run_three_pass_extraction(
                     "p_value": "NA",
                     "total_sample_size": "NA",
                     "intervention_or_predictor_variable": "NA",
-                    "outcome_variable": "NA"
+                    "outcome_variable": "NA",
                 },
-                user_data=user_data
+                user_data=user_data,
             )
             results_rows.append(row_data)
         else:
             for i, result_text in enumerate(main_results_list, start=1):
-                detail_data = extract_result_details(
-                    paper_text=paper_text,
-                    result_text=result_text,
-                    model=model
-                )
+                detail_data = extract_result_details(paper_text=paper_text, result_text=result_text, model=model)
                 row_data = build_row(
                     pdf_file=pdf_file.name,
                     meta_data=meta_data,
                     result_index=i,
                     result_text=result_text,
                     detail_data=detail_data,
-                    user_data=user_data
+                    user_data=user_data,
                 )
                 results_rows.append(row_data)
 
@@ -165,7 +153,7 @@ def run_three_pass_extraction(
             col = f"extra_{i}"
             fieldnames.append(col)
 
-    with open(output_csv, "w", newline="", encoding="utf-8") as f:
+    with open(output_csv, "w", newline="", encoding="utf-8") as f:  # noqa: PTH123
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for row in results_rows:
@@ -175,12 +163,7 @@ def run_three_pass_extraction(
 
 
 def build_row(
-    pdf_file: str,
-    meta_data: dict,
-    result_index: int,
-    result_text: str,
-    detail_data: dict,
-    user_data: dict
+    pdf_file: str, meta_data: dict, result_index: int, result_text: str, detail_data: dict, user_data: dict
 ) -> dict:
     """
     Helper to merge all extracted info into a single row dict.
@@ -190,7 +173,9 @@ def build_row(
         # meta
         "study_title": meta_data.get("study_title", "NA"),
         "population_outcome_measured_in": meta_data.get("population_outcome_measured_in", "NA"),
-        "population_intervention_affected_or_predictor": meta_data.get("population_intervention_affected_or_predictor", "NA"),
+        "population_intervention_affected_or_predictor": meta_data.get(
+            "population_intervention_affected_or_predictor", "NA"
+        ),
         "secondary_characteristics": meta_data.get("secondary_characteristics", "NA"),
         "country": meta_data.get("country", "NA"),
         "study_type_letter": meta_data.get("study_type_letter", "NA"),
