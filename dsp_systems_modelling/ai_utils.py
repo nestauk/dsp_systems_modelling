@@ -1,5 +1,7 @@
-import openai
 import re
+
+import openai
+
 
 def extract_meta_info(paper_text: str, model: str = "gpt-4o", temperature: float = 0.0) -> dict:
     """
@@ -40,14 +42,9 @@ def extract_meta_info(paper_text: str, model: str = "gpt-4o", temperature: float
     user_prompt = f"{meta_prompt}\n\nPaper text:\n{paper_text}\n\n"
 
     try:
-        messages = [
-            {"role": "user", "content": user_prompt}
-        ]
-        
-        response = openai.chat.completions.create(
-            model=model,
-            messages=messages
-        )
+        messages = [{"role": "user", "content": user_prompt}]
+
+        response = openai.chat.completions.create(model=model, messages=messages)
         content = response.choices[0].message.content.strip()
     except Exception as e:
         print(f"[ERROR in meta extraction]: {e}")
@@ -59,7 +56,7 @@ def extract_meta_info(paper_text: str, model: str = "gpt-4o", temperature: float
             "country": "NA",
             "study_type_letter": "NA",
             "num_main_results": "0",
-            "main_results_list": "NA"
+            "main_results_list": "NA",
         }
 
     return parse_meta_extraction(content)
@@ -126,14 +123,9 @@ def extract_result_details(paper_text: str, result_text: str, model: str = "gpt-
     user_prompt = detail_prompt + "\n\nFull paper text:\n" + paper_text + "\n\n"
 
     try:
-        messages = [
-            {"role": "user", "content": user_prompt}
-        ]
-        
-        response = openai.chat.completions.create(
-            model=model,
-            messages=messages
-        )
+        messages = [{"role": "user", "content": user_prompt}]
+
+        response = openai.chat.completions.create(model=model, messages=messages)
         content = response.choices[0].message.content.strip()
     except Exception as e:
         print(f"[ERROR in details extraction]: {e}")
@@ -144,7 +136,7 @@ def extract_result_details(paper_text: str, result_text: str, model: str = "gpt-
             "p_value": "NA",
             "total_sample_size": "NA",
             "intervention_or_predictor_variable": "NA",
-            "outcome_variable": "NA"
+            "outcome_variable": "NA",
         }
 
     return parse_detail_extraction(content)
@@ -184,12 +176,14 @@ def parse_detail_extraction(content: str) -> dict:
 # Pass 3: User-Supplied Extra Items
 # ----------------------------------------------------------------------------
 
+
 def extract_user_items(paper_text: str, user_items: list[str], model: str = "gpt-4o", temperature: float = 0.0) -> dict:
     """
-    Takes a list of user-specified extra items (strings). 
-    We prompt GPT with an enumerated list of these items, 
+    Takes a list of user-specified extra items (strings).
+
+    We prompt GPT with an enumerated list of these items,
     asking it to provide '1: answer', '2: answer', etc.
-    
+
     Returns a dict like:
       {
          "extra_1": "...",
@@ -221,14 +215,9 @@ def extract_user_items(paper_text: str, user_items: list[str], model: str = "gpt
     user_prompt = f"{prompt_header}{enumerated_instructions}\n\nPaper text:\n{paper_text}\n\n"
 
     try:
-        messages = [
-            {"role": "user", "content": user_prompt}
-        ]
-        
-        response = openai.chat.completions.create(
-            model=model,
-            messages=messages
-        )
+        messages = [{"role": "user", "content": user_prompt}]
+
+        response = openai.chat.completions.create(model=model, messages=messages)
         content = response.choices[0].message.content.strip()
     except Exception as e:
         print(f"[ERROR in user items extraction]: {e}")
@@ -243,6 +232,7 @@ def extract_user_items(paper_text: str, user_items: list[str], model: str = "gpt
 def parse_user_items_response(content: str, num_items: int) -> dict:
     """
     We look for lines '1:', '2:', ..., up to 'num_items:'.
+
     Return a dict: {"extra_1": answer1, "extra_2": answer2, ...}
     """
     results = ["NA"] * num_items
@@ -263,25 +253,24 @@ def parse_user_items_response(content: str, num_items: int) -> dict:
     out = {f"extra_{i}": results[i - 1] for i in range(num_items)}
     return out
 
+
 def filter_references_with_gpt(
-    references: list[dict],
-    user_description: str,
-    model: str = "gpt-4o",
-    temperature: float = 0.0
+    references: list[dict], user_description: str, model: str = "gpt-4o", temperature: float = 0.0
 ) -> list[dict]:
     """
-    Filters a list of references (with 'title' and 'abstract') according to
-    the user description of what studies they want included.
+    Filters a list of references (with 'title' and 'abstract').
+
+    Does this according to the user description of what studies they want included.
 
     For each reference:
       - We provide GPT with the user description, the reference title, and abstract.
       - We ask GPT to answer ONLY "include" or "exclude".
       - If GPT says "include", we keep the reference; otherwise, we discard it.
 
-    Returns:
+    Returns
+    -------
         A filtered list of reference dicts (subset of the original list).
     """
-
     filtered = []
     for ref in references:
         title = ref.get("title", "")
@@ -298,27 +287,22 @@ def filter_references_with_gpt(
                 "You are an expert research assistant. Your task is to determine "
                 "if a given study is relevant to the user's description. "
                 "Respond ONLY with 'include' or 'exclude'."
-            )
+            ),
         }
         user_message = {
-            "role": "user", "content": (
+            "role": "user",
+            "content": (
                 f"User's description of relevant studies:\n{user_description}\n\n"
                 f"Study Title: {title}\n"
                 f"Study Abstract: {abstract}\n\n"
                 "Is this study relevant? Respond ONLY with 'include' or 'exclude'."
-            )
+            ),
         }
 
         try:
-            messages = [
-                system_message,
-                user_message
-            ]
-            
-            response = openai.chat.completions.create(
-                model=model,
-                messages=messages
-            )
+            messages = [system_message, user_message]
+
+            response = openai.chat.completions.create(model=model, messages=messages)
             content = response.choices[0].message.content.strip().lower()
             if "include" in content and "exclude" not in content:
                 filtered.append(ref)
